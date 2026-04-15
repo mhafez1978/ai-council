@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Decision {
+  id          String   @id @default(cuid())
+  objective   String
+  budget      String
+  timeline    String
+  riskTolerance String
+  mode        String
+  context     String   @db.Text
+  
+  fullResponse String  @db.Text
+  decisionJson String  @db.Text
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([createdAt(sort: Desc)])
+  @@map("decisions")
+}
+
+model Discussion {
+  id          String   @id @default(cuid())
+  execId      String
+  topic      String
+  messages   String   @db.Text
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([createdAt(sort: Desc)])
+  @@map("discussions")
+}
+
+model ExecutiveAgent {
+  id          String   @id @default(cuid())
+  name        String
+  role       String
+  email      String?
+  phone      String?
+  isActive   Boolean  @default(true)
+  
+  schedules  ProactiveSchedule[]
+  activities ExecutiveActivity[]
+  meetings   ScheduledMeeting[]
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("executive_agents")
+}
+
+model ProactiveSchedule {
+  id            String   @id @default(cuid())
+  executiveId   String
+  executive    ExecutiveAgent @relation(fields: [executiveId], references: [id])
+  actionType   String   // search_internet, prospect_leads, check_in, reminder, meeting
+  schedule    String   // cron expression
+  config      String   @db.Text // JSON config
+  isActive    Boolean  @default(true)
+  lastRun     DateTime?
+  nextRun     DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("proactive_schedules")
+}
+
+model ExecutiveActivity {
+  id          String   @id @default(cuid())
+  executiveId String
+  executive   ExecutiveAgent @relation(fields: [executiveId], references: [id])
+  actionType  String
+  status     String   // pending, running, completed, failed
+  result     String?  @db.Text
+  metadata   String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+  completedAt DateTime?
+
+  @@map("executive_activities")
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  type        String   // email, sms, whatsapp, webhook
+  to         String
+  subject    String?
+  message    String   @db.Text
+  status     String   // pending, sent, failed, delivered
+  sentAt     DateTime?
+  
+  createdAt  DateTime @default(now())
+
+  @@map("notifications")
+}
+
+model ScheduledMeeting {
+  id            String   @id @default(cuid())
+  executiveId   String?
+  executive    ExecutiveAgent? @relation(fields: [executiveId], references: [id])
+  title        String
+  description String?
+  startTime   DateTime
+  endTime    DateTime?
+  attendees  String   @db.Text // JSON array
+  status     String   // scheduled, in_progress, completed, cancelled
+  notes      String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([startTime(sort: Asc)])
+  @@map("scheduled_meetings")
+}
+
+model Contact {
+  id          String   @id @default(cuid())
+  name        String
+  email      String?
+  phone      String?
+  company    String?
+  source     String?
+  status     String   // new, contacted, qualified, proposal, won, lost
+  
+  metadata   String?  @db.Text
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("contacts")
+}
