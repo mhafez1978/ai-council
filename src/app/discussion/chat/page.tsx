@@ -73,39 +73,64 @@ function MessageContent({ content }: { content: string }) {
   );
 }
 
-function formatSpeakerName(content: string, defaultName: string, execId: string): string {
-  if (execId !== 'ALL') return defaultName;
+function parseMultiExecutiveResponse(content: string): { name: string; title: string; content: string; color: string }[] {
+  const lines = content.split('\n').filter(line => line.trim());
+  const results: { name: string; title: string; content: string; color: string }[] = [];
   
-  const execNames = ['CFO', 'CTO', 'CMO', 'COO', 'CLO', 'Innovation', 'CEO'];
-  for (const name of execNames) {
-    if (content.toUpperCase().includes(`[${name}]`)) {
-      const titles: Record<string, string> = {
-        CFO: 'CFO - Chief Financial Officer',
-        CTO: 'CTO - Chief Technology Officer', 
-        CMO: 'CMO - Chief Marketing Officer',
-        COO: 'COO - Chief Operating Officer',
-        CLO: 'CLO - Chief Legal Officer',
-        Innovation: 'Innovation - Creative Strategist',
-        CEO: 'CEO - Chief Executive Officer',
-      };
-      return titles[name] || name;
+  const execMeta: Record<string, { title: string; color: string }> = {
+    CFO: { title: 'CFO - Chief Financial Officer', color: 'bg-green-100 border-green-300' },
+    CTO: { title: 'CTO - Chief Technology Officer', color: 'bg-blue-100 border-blue-300' },
+    CMO: { title: 'CMO - Chief Marketing Officer', color: 'bg-purple-100 border-purple-300' },
+    COO: { title: 'COO - Chief Operating Officer', color: 'bg-orange-100 border-orange-300' },
+    CLO: { title: 'CLO - Chief Legal Officer', color: 'bg-red-100 border-red-300' },
+    INNOVATION: { title: 'Innovation - Creative Strategist', color: 'bg-yellow-100 border-yellow-300' },
+    CEO: { title: 'CEO - Chief Executive Officer', color: 'bg-pink-100 border-pink-300' },
+  };
+  
+  let currentExec = '';
+  let currentContent: string[] = [];
+  
+  for (const line of lines) {
+    const match = line.match(/^(CFO|CTO|CMO|COO|CLO|INNOVATION|CEO)[:\s]/i);
+    if (match) {
+      if (currentExec && currentContent.length > 0) {
+        const meta = execMeta[currentExec] || { title: 'Executive', color: 'bg-gray-100' };
+        results.push({ name: currentExec, title: meta.title, content: currentContent.join('\n'), color: meta.color });
+      }
+      currentExec = match[1].toUpperCase();
+      currentContent = [line.replace(/^(CFO|CTO|CMO|COO|CLO|INNOVATION|CEO)[:\s]*/i, '').trim()];
+    } else if (currentExec && line.trim()) {
+      currentContent.push(line.trim());
     }
   }
   
-  const councilMembers = {
-    'Council Member A': 'CFO - Chief Financial Officer',
-    'Council Member B': 'CTO - Chief Technology Officer',
-    'Council Member C': 'CMO - Chief Marketing Officer',
-    'Council Member D': 'COO - Chief Operating Officer',
-    'Council Member E': 'CLO - Chief Legal Officer',
-    'Council Member F': 'Innovation - Creative Strategist',
-    'Council Member G': 'CEO - Chief Executive Officer',
-  };
-  for (const [key, title] of Object.entries(councilMembers)) {
-    if (content.includes(key)) return title;
+  if (currentExec && currentContent.length > 0) {
+    const meta = execMeta[currentExec] || { title: 'Executive', color: 'bg-gray-100' };
+    results.push({ name: currentExec, title: meta.title, content: currentContent.join('\n'), color: meta.color });
   }
   
-  return defaultName;
+  return results.length > 0 ? results : [{ name: 'Executive', title: 'Board Member', content, color: 'bg-gray-100' }];
+}
+
+function MessageBubble({ speaker, content, isUser }: { speaker: { name: string; title: string; color: string }; content: string; isUser: boolean }) {
+  const bubbleClass = isUser 
+    ? 'bg-blue-600 text-white' 
+    : speaker.color || 'bg-gray-100 text-gray-900';
+  
+  return (
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+      <div className={`max-w-[85%] rounded-xl p-4 ${bubbleClass} border`}>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs font-bold">{speaker.name}</span>
+          {speaker.title && <span className="text-xs opacity-70">| {speaker.title}</span>}
+        </div>
+        <div className="flex items-start gap-2">
+          <MessageContent content={content} />
+          {!isUser && <PlayButton text={content} />}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function ChatContent({ execId, initialTopic }: { execId: string; initialTopic: string }) {
@@ -143,7 +168,18 @@ function ChatContent({ execId, initialTopic }: { execId: string; initialTopic: s
 
   const buildSystemPrompt = (exec: string, topic: string) => {
     if (exec === 'ALL') {
-      return `You are the AI Executive Council. Stay in character. Debate actively. Topic: ${topic}`;
+      return `You are the AI Executive Council. Stay in character and debate actively. 
+
+IMPORTANT: When responding, you MUST use this format for EACH executive's response on a SEPARATE line:
+CFO: [your response as Council Member A - CFO - Chief Financial Officer]
+CTO: [your response as Council Member B - CTO - Chief Technology Officer]
+CMO: [your response as Council Member C - CMO - Chief Marketing Officer]
+COO: [your response as Council Member D - COO - Chief Operating Officer]
+CLO: [your response as Council Member E - CLO - Chief Legal Officer]
+INNOVATION: [your response as Council Member F - Innovation - Creative Strategist]
+CEO: [your response as Council Member G - CEO - Chief Executive Officer]
+
+Start EACH line with the executive title (CFO, CTO, CMO, COO, CLO, INNOVATION, CEO). Topic: ${topic}`;
     }
     const execInfo = EXECUTIVES[exec];
     return `You are ${execInfo.name}. Stay in character. Topic: ${topic}`;
@@ -205,23 +241,21 @@ function ChatContent({ execId, initialTopic }: { execId: string; initialTopic: s
   return (
     <>
       <div className="flex-1 overflow-auto p-4 space-y-4">
-        {messages.map((msg, idx) => (
-          <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] rounded-lg p-3 ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
-              <p className="text-xs font-semibold mb-1 opacity-70">
-                {msg.role === 'user' ? 'You' : formatSpeakerName(msg.content, exec.name, execId)}
-              </p>
-              <div className="flex items-start">
-                <MessageContent content={msg.content} />
-                {msg.role === 'assistant' && <PlayButton text={msg.content} />}
-              </div>
-            </div>
-          </div>
-        ))}
+        {messages.map((msg, idx) => {
+          if (msg.role === 'user') {
+            return <MessageBubble key={idx} isUser={true} speaker={{ name: 'You', title: '', color: '' }} content={msg.content} />;
+          }
+          
+          const parsed = execId === 'ALL' ? parseMultiExecutiveResponse(msg.content) : [{ name: exec.name, title: EXECUTIVES[execId]?.title || '', content: msg.content, color: 'bg-gray-100' }];
+          
+          return parsed.map((speaker, pidx) => (
+            <MessageBubble key={`${idx}-${pidx}`} isUser={false} speaker={speaker} content={speaker.content} />
+          ));
+        })}
         {streaming && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-lg p-3 max-w-[80%]">
-              <p className="text-xs font-semibold mb-1 opacity-70">Full Board - Executive Council</p>
+            <div className="bg-gray-100 rounded-xl p-4 max-w-[85%]">
+              <p className="text-xs font-bold mb-1">Full Board</p>
               <p className="animate-pulse">{streaming}</p>
             </div>
           </div>
