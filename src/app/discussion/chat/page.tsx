@@ -73,6 +73,41 @@ function MessageContent({ content }: { content: string }) {
   );
 }
 
+function formatSpeakerName(content: string, defaultName: string, execId: string): string {
+  if (execId !== 'ALL') return defaultName;
+  
+  const execNames = ['CFO', 'CTO', 'CMO', 'COO', 'CLO', 'Innovation', 'CEO'];
+  for (const name of execNames) {
+    if (content.toUpperCase().includes(`[${name}]`)) {
+      const titles: Record<string, string> = {
+        CFO: 'CFO - Chief Financial Officer',
+        CTO: 'CTO - Chief Technology Officer', 
+        CMO: 'CMO - Chief Marketing Officer',
+        COO: 'COO - Chief Operating Officer',
+        CLO: 'CLO - Chief Legal Officer',
+        Innovation: 'Innovation - Creative Strategist',
+        CEO: 'CEO - Chief Executive Officer',
+      };
+      return titles[name] || name;
+    }
+  }
+  
+  const councilMembers = {
+    'Council Member A': 'CFO - Chief Financial Officer',
+    'Council Member B': 'CTO - Chief Technology Officer',
+    'Council Member C': 'CMO - Chief Marketing Officer',
+    'Council Member D': 'COO - Chief Operating Officer',
+    'Council Member E': 'CLO - Chief Legal Officer',
+    'Council Member F': 'Innovation - Creative Strategist',
+    'Council Member G': 'CEO - Chief Executive Officer',
+  };
+  for (const [key, title] of Object.entries(councilMembers)) {
+    if (content.includes(key)) return title;
+  }
+  
+  return defaultName;
+}
+
 function ChatContent({ execId, initialTopic }: { execId: string; initialTopic: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -173,7 +208,9 @@ function ChatContent({ execId, initialTopic }: { execId: string; initialTopic: s
         {messages.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[80%] rounded-lg p-3 ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
-              <p className="text-xs font-semibold mb-1 opacity-70">{msg.name}</p>
+              <p className="text-xs font-semibold mb-1 opacity-70">
+                {msg.role === 'user' ? 'You' : formatSpeakerName(msg.content, exec.name, execId)}
+              </p>
               <div className="flex items-start">
                 <MessageContent content={msg.content} />
                 {msg.role === 'assistant' && <PlayButton text={msg.content} />}
@@ -184,7 +221,7 @@ function ChatContent({ execId, initialTopic }: { execId: string; initialTopic: s
         {streaming && (
           <div className="flex justify-start">
             <div className="bg-gray-100 rounded-lg p-3 max-w-[80%]">
-              <p className="text-xs font-semibold mb-1 opacity-70">{exec.name}</p>
+              <p className="text-xs font-semibold mb-1 opacity-70">Full Board - Executive Council</p>
               <p className="animate-pulse">{streaming}</p>
             </div>
           </div>
