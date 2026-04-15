@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const date = searchParams.get('date');
-  
+  const date = searchParams.get("date");
+
   try {
     let where = {};
     if (date) {
@@ -14,15 +14,19 @@ export async function GET(request: NextRequest) {
       dayEnd.setHours(23, 59, 59, 999);
       where = { date: { gte: dayStart, lte: dayEnd } };
     }
-    
+
     const notes = await prisma.dailyNote.findMany({
       where,
-      orderBy: { date: 'desc' },
+      orderBy: { date: "desc" },
     });
-    
+
     return NextResponse.json(notes);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch notes' }, { status: 500 });
+    console.error("GET /api/dailynotes error:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch notes", details: String(error) },
+      { status: 500 },
+    );
   }
 }
 
@@ -30,7 +34,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { task, hours, result, score } = body;
-    
+
     const note = await prisma.dailyNote.create({
       data: {
         date: new Date(),
@@ -40,9 +44,13 @@ export async function POST(request: NextRequest) {
         score,
       },
     });
-    
+
     return NextResponse.json(note);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create note' }, { status: 500 });
+    console.error("POST /api/dailynotes error:", error);
+    return NextResponse.json(
+      { error: "Failed to create note", details: String(error) },
+      { status: 500 },
+    );
   }
 }

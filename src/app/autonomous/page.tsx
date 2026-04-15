@@ -160,6 +160,8 @@ export default function AutonomousPage() {
       <div className="mt-6 bg-purple-50 rounded-xl p-6 border-2 border-purple-300">
         <h2 className="font-bold mb-4">📋 Friday Weekly Recap (ALL EXECUTIVES)</h2>
         <div className="space-y-3 text-sm">
+          <div><strong>📊 Your Activities:</strong> All daily tasks reviewed - executives know what you've been working on this week</div>
+          <div><strong>💬 Activity Feedback:</strong> Each exec can provide feedback on your work and rate performance (affects your score)</div>
           <div><strong>📊 Ops:</strong> Revenue, pipelines, deliverables status</div>
           <div><strong>⚠️ Challenges:</strong> Blockers, risks, cash flow issues</div>
           <div><strong>🏆 Accomplishments:</strong> Wins, closed deals, completed projects</div>
@@ -167,7 +169,7 @@ export default function AutonomousPage() {
           <div><strong>🎯 Strategic Moves:</strong> Big decisions, opportunities</div>
         </div>
         <p className="text-xs text-gray-500 mt-4">
-          * Runs Friday 3PM - 45 min total. Full board discusses via chat interface, generates written report.
+          * Runs Friday 3PM. Before meeting: executives pull your daily activities, review them, and prepare feedback. Feedback saved to each activity.
         </p>
       </div>
     </div>
