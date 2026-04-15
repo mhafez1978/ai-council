@@ -22,35 +22,43 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(notes);
   } catch (error) {
-    console.error("GET /api/dailynotes error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch notes", details: String(error) },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { task, hours, result, score } = body;
-
     const note = await prisma.dailyNote.create({
-      data: {
-        date: new Date(),
-        task,
-        hours,
-        result,
-        score,
-      },
+      data: { date: new Date(), task: body.task, hours: body.hours, result: body.result },
     });
-
     return NextResponse.json(note);
   } catch (error) {
-    console.error("POST /api/dailynotes error:", error);
-    return NextResponse.json(
-      { error: "Failed to create note", details: String(error) },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to create" }, { status: 500 });
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const note = await prisma.dailyNote.update({
+      where: { id: body.id },
+      data: { task: body.task, hours: body.hours, result: body.result, feedback: body.feedback, score: body.score },
+    });
+    return NextResponse.json(note);
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to update" }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+  try {
+    await prisma.dailyNote.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
   }
 }

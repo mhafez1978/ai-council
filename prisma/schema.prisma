@@ -193,10 +193,11 @@ model Employee {
 model DailyNote {
   id          String   @id @default(cuid())
   date        DateTime
-  task       String   @db.Text
+  task        String   @db.Text
   hours      Float?
   result     String?  @db.Text
   score      Float?
+  feedback   String?  @db.Text
   
   createdAt   DateTime @default(now())
 
