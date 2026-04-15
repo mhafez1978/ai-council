@@ -89,34 +89,39 @@ export default function DailyNotesPage() {
   // Get AI feedback on specific activity - shows in board meetings and affects score
   const getActivityFeedback = async (noteId: string, task: string, result: string, hasFeedback: boolean) => {
     if (hasFeedback) { toast.info('Feedback already exists'); return; }
+    toast.loading('🤖 Executive evaluating...', { id: 'feedback' });
     
-    toast.promise(
-      (async () => {
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system: `You are the CEO for Blooming Brands & Nodes. Evaluate this activity and give a score 0-10 based on quality, impact, and results. Reply in format: SCORE:X Feedback:...`,
-            user: `Evaluate: "${task}" - ${result || 'Completed'}`,
-          }),
-        });
-        const data = await res.json();
-        const response = data.response;
-        
-        const scoreMatch = response.match(/SCORE:(\d+)/i);
-        const score = scoreMatch ? parseInt(scoreMatch[1]) : null;
-        const feedback = response.replace(/SCORE:\d+\s*/i, '').replace(/Feedback:/i, 'Feedback:');
-        
-        await fetch('/api/dailynotes', { 
-          method: 'PUT', 
-          headers: { 'Content-Type': 'application/json' }, 
-          body: JSON.stringify({ id: noteId, feedback, score }) 
-        });
-        fetchNotes();
-        return `Score: ${score}/10 - Feedback saved!`;
-      })(),
-      { loading: '🤖 Executive evaluating...', success: (msg) => msg, error: 'Failed to score' }
-    );
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system: `You are the CEO for Blooming Brands & Nodes. Reply EXACTLY in this format: "SCORE:7 Feedback:You did great work on..." (score 0-10)`,
+          user: `Evaluate: "${task}" - ${result || 'Completed'}`,
+        }),
+      });
+      const data = await res.json();
+      const response = data.response;
+      
+      const scoreMatch = response.match(/SCORE:(\d+)/i);
+      const score = scoreMatch ? parseInt(scoreMatch[1]) : 7;
+      
+      const feedbackMatch = response.match(/Feedback:(.+)/i);
+      const feedback = feedbackMatch ? feedbackMatch[1].trim() : response.replace(/SCORE:\d+\s*/i, '').trim();
+      
+      await fetch('/api/dailynotes', { 
+        method: 'PUT', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ id: noteId, feedback: `Score: ${score}/10 - ${feedback}`, score }) 
+      });
+      
+      toast.dismiss('feedback');
+      toast.success(`Score: ${score}/10 saved!`);
+      fetchNotes();
+    } catch (e) {
+      toast.dismiss('feedback');
+      toast.error('Failed to get feedback');
+    }
   };
 
   return (
