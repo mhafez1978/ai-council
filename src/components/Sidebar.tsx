@@ -179,6 +179,30 @@ export default function Sidebar() {
         >
           🤖 Autonomous Ops
         </Link>
+        <Link
+          href="/scoreboard"
+          className={`block py-2.5 px-4 rounded transition-colors ${
+            pathname === '/scoreboard' ? 'bg-blue-600' : 'hover:bg-slate-800'
+          }`}
+        >
+          🏆 Scoreboard
+        </Link>
+        <Link
+          href="/clock"
+          className={`block py-2.5 px-4 rounded transition-colors ${
+            pathname === '/clock' ? 'bg-blue-600' : 'hover:bg-slate-800'
+          }`}
+        >
+          ⏰ Time Clock
+        </Link>
+        <Link
+          href="/hr"
+          className={`block py-2.5 px-4 rounded transition-colors ${
+            pathname === '/hr' ? 'bg-blue-600' : 'hover:bg-slate-800'
+          }`}
+        >
+          👥 HR Department
+        </Link>
       </nav>
 
       {activeDiscussion && (

@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Decision {
   id: string;
@@ -28,20 +32,20 @@ export default function DashboardPage() {
       .catch(() => setLoading(false));
   }, []);
 
-  const getDecisionColor = (decision: string) => {
+  const getDecisionVariant = (decision: string) => {
     const d = decision?.toLowerCase() || '';
-    if (d.includes('approve')) return 'bg-green-100 text-green-800';
-    if (d.includes('reject')) return 'bg-red-100 text-red-800';
-    if (d.includes('modify')) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-gray-100 text-gray-800';
+    if (d.includes('approve')) return 'default';
+    if (d.includes('reject')) return 'destructive';
+    if (d.includes('modify')) return 'secondary';
+    return 'outline';
   };
 
-  const getModeColor = (mode: string) => {
+  const getModeVariant = (mode: string) => {
     const m = mode?.toUpperCase() || '';
-    if (m === 'SURVIVAL') return 'bg-red-100 text-red-800';
-    if (m === 'GROWTH') return 'bg-green-100 text-green-800';
-    if (m === 'OPTIMIZATION') return 'bg-blue-100 text-blue-800';
-    return 'bg-gray-100 text-gray-800';
+    if (m === 'SURVIVAL') return 'destructive';
+    if (m === 'GROWTH') return 'default';
+    if (m === 'OPTIMIZATION') return 'secondary';
+    return 'outline';
   };
 
   const formatDate = (dateStr: string) => {
@@ -49,88 +53,109 @@ export default function DashboardPage() {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
     });
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Executive Dashboard</h1>
-          <p className="text-gray-600 mt-1">AI-powered decision history</p>
+          <h1 className="text-3xl font-bold tracking-tight">Executive Dashboard</h1>
+          <p className="text-muted-foreground mt-1">AI-powered decision history</p>
         </div>
-        <Link
-          href="/new"
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-        >
-          + New Decision
+        <Link href="/new">
+          <Button>+ New Decision</Button>
         </Link>
       </div>
 
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Decisions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{decisions.length}</div>
+            <p className="text-xs text-muted-foreground">All time</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Approved</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {decisions.filter(d => d.decision?.toLowerCase().includes('approve')).length}
+            </div>
+            <p className="text-xs text-muted-foreground">Approved decisions</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">
+              {decisions.filter(d => !d.decision || d.decision === 'Unknown').length}
+            </div>
+            <p className="text-xs text-muted-foreground">Awaiting decision</p>
+          </CardContent>
+        </Card>
+      </div>
+
       {decisions.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-lg">
-          <p className="text-gray-500 text-lg">No decisions yet</p>
-          <p className="text-gray-400 mt-2">Submit your first decision request to get started</p>
-          <Link
-            href="/new"
-            className="inline-block mt-4 text-blue-600 hover:underline"
-          >
-            Create your first decision →
-          </Link>
-        </div>
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <p className="text-muted-foreground text-lg">No decisions yet</p>
+            <p className="text-muted-foreground mt-2">Submit your first decision request to get started</p>
+            <Link href="/new" className="mt-4">
+              <Button variant="outline">Create your first decision</Button>
+            </Link>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Objective</th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Mode</th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Budget</th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Decision</th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Date</th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {decisions.map((decision) => (
-                <tr key={decision.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <Link href={`/decision/${decision.id}`} className="font-medium text-gray-900 hover:text-blue-600">
-                      {decision.objective}
-                    </Link>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getModeColor(decision.mode)}`}>
-                      {decision.mode}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">{decision.budget}</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getDecisionColor(decision.decision)}`}>
-                      {decision.decision || 'Unknown'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-500 text-sm">{formatDate(decision.createdAt)}</td>
-                  <td className="px-6 py-4 text-right">
-                    <Link href={`/decision/${decision.id}`} className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                      View →
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Decisions</CardTitle>
+            <CardDescription>Your decision history</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[400px]">
+              <div className="space-y-4">
+                {decisions.map((decision) => (
+                  <Link
+                    key={decision.id}
+                    href={`/decision/${decision.id}`}
+                    className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent transition-colors"
+                  >
+                    <div className="space-y-1">
+                      <p className="font-medium leading-none">{decision.objective}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {decision.budget} • {decision.timeline}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={getModeVariant(decision.mode)}>{decision.mode}</Badge>
+                      <Badge variant={getDecisionVariant(decision.decision || '')}>
+                        {decision.decision || 'Unknown'}
+                      </Badge>
+                      <p className="text-xs text-muted-foreground w-20 text-right">
+                        {formatDate(decision.createdAt)}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

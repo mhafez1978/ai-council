@@ -137,3 +137,55 @@ model Contact {
 
   @@map("contacts")
 }
+
+model Kudos {
+  id          String   @id @default(cuid())
+  fromExec    String   // executive who gave kudos
+  toExec     String?  // executive who received (null = owner/me)
+  toName     String?  // name if giving to non-executive (e.g., "Mike")
+  message    String
+  category   String   // teamwork, innovation, leadership, results, help, accomplishment
+  
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@map("kudos")
+}
+
+model TimeClock {
+  id          String   @id @default(cuid())
+  status      String   // clocked_in, clocked_out
+  checkIn     DateTime
+  checkOut    DateTime?
+  totalHours  Float?
+  
+  createdAt   DateTime @default(now())
+
+  @@map("time_clock")
+}
+
+model HourlyStatus {
+  id          String   @id @default(cuid())
+  hour        Int      // 8, 9, 10, etc.
+  task        String?  @db.Text
+  status      String   // working, break, meeting, idle
+  notes       String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+
+  @@map("hourly_status")
+}
+
+model Employee {
+  id          String   @id @default(cuid())
+  name        String
+  role       String
+  email      String?
+  phone      String?
+  status     String   // active, on_break, off_duty
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("employees")
+}

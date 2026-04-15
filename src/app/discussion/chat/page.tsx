@@ -44,6 +44,35 @@ function PlayButton({ text }: { text: string }) {
   );
 }
 
+function MessageContent({ content }: { content: string }) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = content.split(urlRegex);
+  
+  if (parts.length === 1) {
+    return <p className="whitespace-pre-wrap">{content}</p>;
+  }
+  
+  return (
+    <p className="whitespace-pre-wrap">
+      {parts.map((part, i) => 
+        urlRegex.test(part) ? (
+          <a 
+            key={i} 
+            href={part} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-600 underline hover:text-blue-800"
+          >
+            {part}
+          </a>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </p>
+  );
+}
+
 function ChatContent({ execId, initialTopic }: { execId: string; initialTopic: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -146,7 +175,7 @@ function ChatContent({ execId, initialTopic }: { execId: string; initialTopic: s
             <div className={`max-w-[80%] rounded-lg p-3 ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
               <p className="text-xs font-semibold mb-1 opacity-70">{msg.name}</p>
               <div className="flex items-start">
-                <p className="whitespace-pre-wrap">{msg.content}</p>
+                <MessageContent content={msg.content} />
                 {msg.role === 'assistant' && <PlayButton text={msg.content} />}
               </div>
             </div>

@@ -3,6 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 export default function NewDecisionPage() {
   const router = useRouter();
@@ -43,118 +49,115 @@ export default function NewDecisionPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-8">
-        <Link href="/dashboard" className="text-blue-600 hover:underline text-sm">
+        <Link href="/dashboard" className="text-muted-foreground hover:text-primary text-sm">
           ← Back to Dashboard
         </Link>
         <h1 className="text-3xl font-bold mt-4">New Decision Request</h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-muted-foreground mt-2">
           Submit a business decision for the AI Executive Council to analyze
         </p>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-          {error}
-        </div>
+        <Card className="border-destructive mb-6">
+          <CardContent className="pt-6 text-destructive">{error}</CardContent>
+        </Card>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Objective *
-          </label>
-          <input
-            type="text"
-            required
-            value={formData.objective}
-            onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="What decision needs to be made?"
-          />
-        </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Decision Details</CardTitle>
+          <CardDescription>Provide context about your decision request</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="objective">Objective *</Label>
+              <Input
+                id="objective"
+                required
+                value={formData.objective}
+                onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
+                placeholder="What decision needs to be made?"
+              />
+            </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Budget *
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.budget}
-              onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="e.g., $5,000"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Timeline *
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.timeline}
-              onChange={(e) => setFormData({ ...formData, timeline: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="e.g., 30 days"
-            />
-          </div>
-        </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="budget">Budget *</Label>
+                <Input
+                  id="budget"
+                  required
+                  value={formData.budget}
+                  onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                  placeholder="e.g., $5,000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="timeline">Timeline *</Label>
+                <Input
+                  id="timeline"
+                  required
+                  value={formData.timeline}
+                  onChange={(e) => setFormData({ ...formData, timeline: e.target.value })}
+                  placeholder="e.g., 30 days"
+                />
+              </div>
+            </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Operating Mode *
-            </label>
-            <select
-              value={formData.mode}
-              onChange={(e) => setFormData({ ...formData, mode: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="SURVIVAL">SURVIVAL</option>
-              <option value="GROWTH">GROWTH</option>
-              <option value="OPTIMIZATION">OPTIMIZATION</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Risk Tolerance *
-            </label>
-            <select
-              value={formData.riskTolerance}
-              onChange={(e) => setFormData({ ...formData, riskTolerance: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </div>
-        </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Operating Mode *</Label>
+                <Select
+                  value={formData.mode}
+                  onValueChange={(value) => setFormData({ ...formData, mode: value as string })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="SURVIVAL">SURVIVAL</SelectItem>
+                    <SelectItem value="GROWTH">GROWTH</SelectItem>
+                    <SelectItem value="OPTIMIZATION">OPTIMIZATION</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Risk Tolerance *</Label>
+                <Select
+                  value={formData.riskTolerance}
+                  onValueChange={(value) => setFormData({ ...formData, riskTolerance: value as string })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Context *
-          </label>
-          <textarea
-            required
-            rows={6}
-            value={formData.context}
-            onChange={(e) => setFormData({ ...formData, context: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Provide detailed context for this decision..."
-          />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="context">Context *</Label>
+              <Textarea
+                id="context"
+                required
+                rows={6}
+                value={formData.context}
+                onChange={(e) => setFormData({ ...formData, context: e.target.value })}
+                placeholder="Provide detailed context for this decision..."
+              />
+            </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {loading ? 'Processing...' : 'Submit to Executive Council'}
-        </button>
-      </form>
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading ? 'Processing...' : 'Submit to Executive Council'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
