@@ -189,3 +189,30 @@ model Employee {
 
   @@map("employees")
 }
+
+model DailyNote {
+  id          String   @id @default(cuid())
+  date        DateTime
+  task       String   @db.Text
+  hours      Float?
+  result     String?  @db.Text
+  score      Float?
+  
+  createdAt   DateTime @default(now())
+
+  @@map("daily_notes")
+}
+
+model ExecutiveScore {
+  id          String   @id @default(cuid())
+  executiveId String
+  decisionId  String?
+  contribution Float   // 0-10
+  accuracy    Float    // 0-10
+  effectiveness Float // 0-10
+  notes       String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+
+  @@map("executive_scores")
+}

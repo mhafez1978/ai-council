@@ -203,6 +203,14 @@ export default function Sidebar() {
         >
           👥 HR Department
         </Link>
+        <Link
+          href="/daily"
+          className={`block py-2.5 px-4 rounded transition-colors ${
+            pathname === '/daily' ? 'bg-blue-600' : 'hover:bg-slate-800'
+          }`}
+        >
+          📝 Daily Activities
+        </Link>
       </nav>
 
       {activeDiscussion && (
